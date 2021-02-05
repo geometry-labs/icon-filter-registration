@@ -1,9 +1,11 @@
 import re
-from typing import Any, Dict, Optional, Type
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Type
+from uuid import UUID
 
 from pydantic import BaseModel, validator
 
-from app.settings import Settings
+from app.settings import settings
 
 
 class LogEventRegistration(BaseModel):
@@ -31,24 +33,22 @@ class LogEventRegistration(BaseModel):
         return v
 
     position: int
-    active: bool
 
 
 class TransactionRegistration(BaseModel):
     from_address: Optional[str]
     to_address: Optional[str]
     value: Optional[float]
-    active: Optional[bool]
 
     @validator("from_address", "to_address")
     def has_address_prefix(cls, v):
-        if not re.search("^cx|^hx", v):
+        if type(v) is str and not re.search("^cx|^hx", v):
             raise ValueError("ICON addresses must start with 'hx' or 'cx'")
         return v
 
     @validator("from_address", "to_address")
     def is_correct_length(cls, v):
-        if len(v) != 42:
+        if type(v) is str and len(v) != 42:
             raise ValueError("ICON addresses must be 42 characters in length")
         return v
 
@@ -60,15 +60,18 @@ class RegistrationMessage(BaseModel):
     value: Optional[float]
     keyword: Optional[str]
     position: Optional[int]
+    reg_id: Optional[str]
 
     class Config:
+        orm_mode = True
+
         @staticmethod
         def schema_extra(
             schema: Dict[str, Any], model: Type["RegistrationMessage"]
         ) -> None:
             for prop in schema.get("properties", {}).values():
                 prop.pop("title", None)
-            schema["title"] = Settings().registrations_topic + "-value"
+            schema["title"] = settings.registrations_topic + "-value"
 
 
 class TransactionRegistrationMessage(RegistrationMessage):
@@ -80,3 +83,34 @@ class LogEventRegistrationMessage(RegistrationMessage):
     to_address: str
     keyword: str
     position: int
+
+
+class BroadcasterRegistration(BaseModel):
+    broadcaster_id: Optional[UUID]
+    connection_type: str
+    endpoint: str
+    event_ids: Optional[List[str]]
+    transaction_events: Optional[List[TransactionRegistration]]
+    log_events: Optional[List[LogEventRegistration]]
+
+
+class BroadcasterRegistrationID(BaseModel):
+    broadcaster_id: UUID
+    endpoint: str
+    created: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class RegistrationConfirmation(BaseModel):
+    reg_id: str
+    status: str
+
+
+class RegistrationID(BaseModel):
+    reg_id: str
+
+
+class BroadcasterID(BaseModel):
+    broadcaster_id: str
