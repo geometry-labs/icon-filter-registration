@@ -15,7 +15,7 @@ async def get_log_event_registrations(db: Session = Depends(get_db)):
     :return: List of registration dictionaries
     """
 
-    rows = crud.get_event_registrations(db)
+    rows = crud.get_all_event_registrations(db)
 
     registrations = []
 
@@ -33,7 +33,7 @@ async def get_log_event_registrations(db: Session = Depends(get_db)):
 
 @router.get("/status/transaction", tags=["status"])
 async def get_transaction_event_registrations(db: Session = Depends(get_db)):
-    rows = crud.get_transaction_registrations(db)
+    rows = crud.get_all_transaction_registrations(db)
 
     registrations = []
 

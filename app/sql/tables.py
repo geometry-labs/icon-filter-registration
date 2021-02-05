@@ -22,7 +22,7 @@ class BroadcasterRegistrations(Base):
     __tablename__ = "broadcaster_registrations"
 
     reg_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
-    broadcaster_id = Column(Integer, ForeignKey("broadcasters.broadcaster_id"))
+    broadcaster_id = Column(UUID, ForeignKey("broadcasters.broadcaster_id"))
     event_id = Column(String, ForeignKey("event_registrations.reg_id"))
     type = Column(String)
     last_used = Column(DateTime)

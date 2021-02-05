@@ -10,12 +10,7 @@ from app.kafka import (
     string_serializer,
     value_context,
 )
-from app.models import (
-    BroadcasterID,
-    LogEventRegistration,
-    RegistrationID,
-    TransactionRegistration,
-)
+from app.models import BroadcasterID, LogEventRegistration, TransactionRegistration
 from app.settings import settings
 from app.sql import crud
 from app.utils import acked, get_db, nonestr
@@ -41,10 +36,10 @@ async def unregister_log_event(
 
     # Brief sleep to allow Kafka Connect to insert message
     # NOTE: this will probably need to be tuned to ensure race conditions aren't a problem
-    sleep(0.5)
+    sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_registration(db, key)
+    rows = crud.get_event_registration_by_id(db, key)
 
     # Ensure no rows were returned
     if rows:
@@ -77,10 +72,10 @@ async def unregister_transaction_event(
 
     # Brief sleep to allow Kafka Connect to insert message
     # NOTE: this will probably need to be tuned to ensure race conditions aren't a problem
-    sleep(0.5)
+    sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_registration(db, key)
+    rows = crud.get_event_registration_by_id_no_404(db, key)
 
     # Ensure no rows were returned
     if rows:
@@ -90,32 +85,34 @@ async def unregister_transaction_event(
 
 
 @router.post("/unregister/id", tags=["unregister"])
-async def unregister_id(registration: RegistrationID, db: Session = Depends(get_db)):
-    rows = crud.get_registration(db, registration.reg_id)
+async def unregister_id(
+    registration: str,
+    db: Session = Depends(get_db),
+):
+    row = crud.get_event_registration_by_id(db, registration)
 
-    if not rows:
+    if not row:
         raise HTTPException(
             400, "Registration ID {} not found.".format(registration.reg_id)
         )
 
-    for row in rows:
-        if row.type == "trans":
-            return await unregister_transaction_event(
-                TransactionRegistration(
-                    to_address=row.to_address,
-                    from_address=row.from_address,
-                    value=row.value,
-                ),
-                db,
-            )
+    if row.type == "trans":
+        return await unregister_transaction_event(
+            TransactionRegistration(
+                to_address=row.to_address,
+                from_address=row.from_address,
+                value=row.value,
+            ),
+            db,
+        )
 
-        if row.type == "logevent":
-            return await unregister_log_event(
-                LogEventRegistration(
-                    address=row.to_address, keyword=row.keyword, position=row.position
-                ),
-                db,
-            )
+    if row.type == "logevent":
+        return await unregister_log_event(
+            LogEventRegistration(
+                address=row.to_address, keyword=row.keyword, position=row.position
+            ),
+            db,
+        )
 
 
 @router.post("/unregister/broadcaster", tags=["unregister"])
@@ -126,5 +123,16 @@ async def unregister_broadcaster(
 
     if not rows:
         raise HTTPException(
-            400, "Registration ID {} not found.".format(registration.reg_id)
+            400, "Registration ID {} not found.".format(registration.broadcaster_id)
         )
+
+    # Delete events and broadcaster event registrations
+
+    for reg in rows:
+        found = crud.get_event_registration_by_id(db, reg.event_id)
+        crud.delete_broadcaster_event_registration(db, reg)
+        await unregister_id(found.reg_id, db)
+
+    # Delete broadcaster
+
+    crud.delete_broadcaster(db, registration.broadcaster_id)

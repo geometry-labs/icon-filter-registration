@@ -55,10 +55,10 @@ async def register_log_event(
 
     # Brief sleep to allow Kafka Connect to insert message
     # NOTE: this will probably need to be tuned to ensure race conditions aren't a problem
-    sleep(0.5)
+    sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_registration(db, key)
+    rows = crud.get_event_registration_by_id_no_404(db, key)
 
     # Check if query returned a result (i.e. if the transaction was inserted)
     if not rows:
@@ -106,23 +106,22 @@ async def register_transaction_event(
 
     # Brief sleep to allow Kafka Connect to insert message
     # NOTE: this will probably need to be tuned to ensure race conditions aren't a problem
-    sleep(0.5)
+    sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_registration(db, key)
+    rows = crud.get_event_registration_by_id_no_404(db, key)
 
     # Check if query returned a result (i.e. if the transaction was inserted)
     if not rows:
         raise HTTPException(500, "Registration not confirmed. Try again. (NOINSERT)")
 
     # Check if query returned correct result
-    for row in rows:
-        if (
-            not row.to_address == registration.to_address
-            and not row.from_address == registration.from_address
-            and not row.value == registration.value
-        ):
-            raise HTTPException(500, "Registration not confirmed. Try again. (NOMATCH)")
+    if (
+        not rows.to_address == registration.to_address
+        and not rows.from_address == registration.from_address
+        and not rows.value == registration.value
+    ):
+        raise HTTPException(500, "Registration not confirmed. Try again. (NOMATCH)")
 
     return {"reg_id": key, "status": "registered"}
 
@@ -169,7 +168,7 @@ async def register_broadcaster(
                 ),
                 db,
             )
-            events.append(res)
+            events.append(res["reg_id"])
 
     if registration.log_events:
         for event in registration.log_events:
@@ -181,7 +180,7 @@ async def register_broadcaster(
                 ),
                 db,
             )
-            events.append(res)
+            events.append(res["reg_id"])
 
     # create new broadcaster ID
 
