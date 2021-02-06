@@ -58,20 +58,19 @@ async def register_log_event(
     sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_event_registration_by_id_no_404(db, key)
+    row = crud.get_event_registration_by_id_no_404(db, key)
 
     # Check if query returned a result (i.e. if the transaction was inserted)
-    if not rows:
+    if not row:
         raise HTTPException(500, "Registration not confirmed. Try again. (NOINSERT)")
 
     # Check if query returned correct result
-    for row in rows:
-        if (
-            not row.to_address == registration.address
-            and not row.keyword == registration.keyword
-            and not row.position == registration.position
-        ):
-            raise HTTPException(500, "Registration not confirmed. Try again. (NOMATCH)")
+    if (
+        not row.to_address == registration.address
+        and not row.keyword == registration.keyword
+        and not row.position == registration.position
+    ):
+        raise HTTPException(500, "Registration not confirmed. Try again. (NOMATCH)")
 
     return {"reg_id": key, "status": "registered"}
 
