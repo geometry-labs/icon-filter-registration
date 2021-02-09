@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  filter-registration:
+    build:
+      context: .
+      target: ${DOCKER_TARGET:-prod}
+    ports:
+      - "6100:6100"
+    environment:
+      network_name: mainnet
+      exporter_port: 6100
+#  db:
+#    image: postgres
