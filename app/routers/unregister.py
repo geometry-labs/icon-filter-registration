@@ -1,3 +1,4 @@
+from json import dumps
 from time import sleep
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,7 +14,7 @@ from app.kafka import (
 from app.models import BroadcasterID, LogEventRegistration, TransactionRegistration
 from app.settings import settings
 from app.sql import crud
-from app.utils import acked, get_db, nonestr
+from app.utils import acked, get_db
 
 router = APIRouter()
 
@@ -22,14 +23,14 @@ router = APIRouter()
 async def unregister_log_event(
     registration: LogEventRegistration, db: Session = Depends(get_db)
 ):
-    # Generate message key
-    key = registration.address + ":" + registration.keyword
+    if not registration.reg_id:
+        raise HTTPException(400, "You must provide this item's registration ID.")
 
     # Produce message for registration topic
     # NOTE: This is a tombstone record, so the VALUE is NULL
     producer.produce(
         topic=settings.registrations_topic,
-        key=string_serializer(key, key_context),
+        key=string_serializer(registration.reg_id, key_context),
         value=json_serializer(None, value_context),
         callback=acked,
     )
@@ -39,33 +40,25 @@ async def unregister_log_event(
     sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_event_registration_by_id(db, key)
+    rows = crud.get_event_registration_by_id_no_404(db, registration.reg_id)
 
     # Ensure no rows were returned
     if rows:
         raise HTTPException(500, "Unregistration not confirmed. Try again. (NOTOMB)")
 
-    return {"reg_id": key, "status": "unregistered"}
+    return {"reg_id": registration.reg_id, "status": "unregistered"}
 
 
 @router.post("/unregister/transaction", tags=["unregister"])
 async def unregister_transaction_event(
     registration: TransactionRegistration, db: Session = Depends(get_db)
 ):
-    # Generate message key
-    key = (
-        nonestr(registration.to_address)
-        + ":"
-        + nonestr(registration.from_address)
-        + ":"
-        + nonestr(registration.value)
-    )
 
     # Produce message for registration topic
     # NOTE: This is a tombstone record, so the VALUE is NULL
     producer.produce(
         topic=settings.registrations_topic,
-        key=string_serializer(key, key_context),
+        key=string_serializer(registration.reg_id, key_context),
         value=json_serializer(None, value_context),
         callback=acked,
     )
@@ -75,13 +68,13 @@ async def unregister_transaction_event(
     sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_event_registration_by_id_no_404(db, key)
+    rows = crud.get_event_registration_by_id_no_404(db, registration.reg_id)
 
     # Ensure no rows were returned
     if rows:
         raise HTTPException(500, "Unregistration not confirmed. Try again. (NOTOMB)")
 
-    return {"reg_id": key, "status": "unregistered"}
+    return {"reg_id": registration.reg_id, "status": "unregistered"}
 
 
 @router.post("/unregister/id", tags=["unregister"])
@@ -92,13 +85,12 @@ async def unregister_id(
     row = crud.get_event_registration_by_id(db, registration)
 
     if not row:
-        raise HTTPException(
-            400, "Registration ID {} not found.".format(registration.reg_id)
-        )
+        raise HTTPException(400, "Registration ID {} not found.".format(registration))
 
     if row.type == "trans":
         return await unregister_transaction_event(
             TransactionRegistration(
+                reg_id=registration,
                 to_address=row.to_address,
                 from_address=row.from_address,
                 value=row.value,
@@ -109,7 +101,10 @@ async def unregister_id(
     if row.type == "logevent":
         return await unregister_log_event(
             LogEventRegistration(
-                address=row.to_address, keyword=row.keyword, position=row.position
+                reg_id=registration,
+                address=row.to_address,
+                keyword=row.keyword,
+                position=row.position,
             ),
             db,
         )
@@ -130,9 +125,17 @@ async def unregister_broadcaster(
 
     for reg in rows:
         found = crud.get_event_registration_by_id(db, reg.event_id)
+        msg = {
+            "event_id": reg.event_id,
+            "broadcaster_id": registration.broadcaster_id,
+            "active": False,
+        }
+        producer.produce(settings.broadcaster_events_topic, value=dumps(msg))
         crud.delete_broadcaster_event_registration(db, reg)
         await unregister_id(found.reg_id, db)
 
     # Delete broadcaster
 
     crud.delete_broadcaster(db, registration.broadcaster_id)
+
+    return {"reg_id": registration.broadcaster_id, "status": "unregistered"}

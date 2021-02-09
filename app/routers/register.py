@@ -1,4 +1,6 @@
+from json import dumps
 from time import sleep
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -19,7 +21,7 @@ from app.models import (
 )
 from app.settings import settings
 from app.sql import crud
-from app.utils import acked, get_db, nonestr
+from app.utils import acked, get_db
 
 router = APIRouter()
 
@@ -35,8 +37,7 @@ async def register_log_event(
     :return: None
     """
 
-    # Generate message key
-    key = registration.address + ":" + registration.keyword
+    reg_id = str(uuid4())
 
     # Generate message for registration topic
     msg = LogEventRegistrationMessage(
@@ -48,7 +49,7 @@ async def register_log_event(
     # Produce message for registration topic
     producer.produce(
         topic=settings.registrations_topic,
-        key=string_serializer(key, key_context),
+        key=string_serializer(reg_id, key_context),
         value=json_serializer(msg.dict(), value_context),
         callback=acked,
     )
@@ -58,7 +59,7 @@ async def register_log_event(
     sleep(1)
 
     # Query the DB to check if insert was done correctly
-    row = crud.get_event_registration_by_id_no_404(db, key)
+    row = crud.get_event_registration_by_id_no_404(db, reg_id)
 
     # Check if query returned a result (i.e. if the transaction was inserted)
     if not row:
@@ -72,7 +73,7 @@ async def register_log_event(
     ):
         raise HTTPException(500, "Registration not confirmed. Try again. (NOMATCH)")
 
-    return {"reg_id": key, "status": "registered"}
+    return {"reg_id": reg_id, "status": "registered"}
 
 
 @router.post("/register/transaction", tags=["register"])
@@ -80,16 +81,11 @@ async def register_transaction_event(
     registration: TransactionRegistration, db: Session = Depends(get_db)
 ):
     # Generate message key
-    key = (
-        nonestr(registration.to_address)
-        + ":"
-        + nonestr(registration.from_address)
-        + ":"
-        + nonestr(registration.value)
-    )
+    reg_id = str(uuid4())
 
     # Generate message for registration topic
     msg = TransactionRegistrationMessage(
+        reg_id=reg_id,
         to_address=registration.to_address,
         from_address=registration.from_address,
         value=registration.value,
@@ -98,7 +94,7 @@ async def register_transaction_event(
     # Produce message for registration topic
     producer.produce(
         topic=settings.registrations_topic,
-        key=string_serializer(key, key_context),
+        key=string_serializer(reg_id, key_context),
         value=json_serializer(msg.dict(), value_context),
         callback=acked,
     )
@@ -108,7 +104,7 @@ async def register_transaction_event(
     sleep(1)
 
     # Query the DB to check if insert was done correctly
-    rows = crud.get_event_registration_by_id_no_404(db, key)
+    rows = crud.get_event_registration_by_id_no_404(db, reg_id)
 
     # Check if query returned a result (i.e. if the transaction was inserted)
     if not rows:
@@ -122,7 +118,7 @@ async def register_transaction_event(
     ):
         raise HTTPException(500, "Registration not confirmed. Try again. (NOMATCH)")
 
-    return {"reg_id": key, "status": "registered"}
+    return {"reg_id": reg_id, "status": "registered"}
 
 
 @router.post("/register/broadcaster", tags=["register"])
@@ -130,7 +126,6 @@ async def register_broadcaster(
     registration: BroadcasterRegistration,
     db: Session = Depends(get_db),
 ):
-
     if registration.broadcaster_id:
         raise HTTPException(
             400, "Incorrect endpoint for modification. Try '/modify/broadcaster/'"
@@ -194,5 +189,13 @@ async def register_broadcaster(
             event,
             registration.connection_type,
         )
+
+        msg = {
+            "event_id": event,
+            "broadcaster_id": str(broadcaster_registration.broadcaster_id),
+            "active": True,
+        }
+
+        producer.produce(settings.broadcaster_events_topic, value=dumps(msg))
 
     return {"reg_id": broadcaster_registration.broadcaster_id, "status": "registered"}

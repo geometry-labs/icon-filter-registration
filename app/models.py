@@ -9,8 +9,10 @@ from app.settings import settings
 
 
 class LogEventRegistration(BaseModel):
+    reg_id: str
     address: str
     keyword: str
+    reg_id: Optional[str]
 
     @validator("address")
     def has_contract_prefix(cls, v):
@@ -39,6 +41,7 @@ class TransactionRegistration(BaseModel):
     from_address: Optional[str]
     to_address: Optional[str]
     value: Optional[float]
+    reg_id: Optional[str]
 
     @validator("from_address", "to_address")
     def has_address_prefix(cls, v):
