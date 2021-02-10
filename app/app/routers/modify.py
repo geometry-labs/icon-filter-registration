@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.models import (
+from ..models import (
     BroadcasterRegistration,
     LogEventRegistration,
     TransactionRegistration,
 )
-from app.routers.register import register_log_event, register_transaction_event
-from app.routers.unregister import unregister_log_event, unregister_transaction_event
-from app.sql import crud
-from app.utils import get_db
+from ..routers.register import register_log_event, register_transaction_event
+from ..routers.unregister import unregister_log_event, unregister_transaction_event
+from ..sql import crud
+from ..utils import get_db
 
 router = APIRouter()
 

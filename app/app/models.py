@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, validator
 
-from app.settings import settings
+from .settings import settings
 
 
 class LogEventRegistration(BaseModel):

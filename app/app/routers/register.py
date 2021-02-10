@@ -5,23 +5,23 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.kafka import (
+from ..kafka import (
     json_serializer,
     key_context,
     producer,
     string_serializer,
     value_context,
 )
-from app.models import (
+from ..models import (
     BroadcasterRegistration,
     LogEventRegistration,
     LogEventRegistrationMessage,
     TransactionRegistration,
     TransactionRegistrationMessage,
 )
-from app.settings import settings
-from app.sql import crud
-from app.utils import acked, get_db
+from ..settings import settings
+from ..sql import crud
+from ..utils import acked, get_db
 
 router = APIRouter()
 

@@ -4,17 +4,17 @@ from time import sleep
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.kafka import (
+from ..kafka import (
     json_serializer,
     key_context,
     producer,
     string_serializer,
     value_context,
 )
-from app.models import BroadcasterID, LogEventRegistration, TransactionRegistration
-from app.settings import settings
-from app.sql import crud
-from app.utils import acked, get_db
+from ..models import BroadcasterID, LogEventRegistration, TransactionRegistration
+from ..settings import settings
+from ..sql import crud
+from ..utils import acked, get_db
 
 router = APIRouter()
 

@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from app.sql.base import SessionLocal
+from .sql.base import SessionLocal
 
 
 def nonestr(s):

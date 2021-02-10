@@ -3,7 +3,7 @@ from uuid import uuid4
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from app.sql.base import Base
+from .base import Base
 
 
 class EventRegistrations(Base):

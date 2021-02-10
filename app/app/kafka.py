@@ -9,7 +9,7 @@ from confluent_kafka.serialization import (
     StringSerializer,
 )
 
-from app.settings import settings
+from .settings import settings
 
 producer = Producer(
     {

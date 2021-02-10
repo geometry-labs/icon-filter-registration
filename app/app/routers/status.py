@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.models import LogEventRegistration, TransactionRegistration
-from app.sql import crud
-from app.utils import get_db
+from ..models import LogEventRegistration, TransactionRegistration
+from ..sql import crud
+from ..utils import get_db
 
 router = APIRouter()
 

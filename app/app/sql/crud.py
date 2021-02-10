@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.sql.tables import BroadcasterRegistrations, Broadcasters, EventRegistrations
+from .tables import BroadcasterRegistrations, Broadcasters, EventRegistrations
 
 
 def get_all_event_registrations(db: Session):
