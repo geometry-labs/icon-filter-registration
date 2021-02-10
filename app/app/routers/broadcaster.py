@@ -1,17 +1,137 @@
+from json import dumps
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..kafka import producer
 from ..models import (
+    BroadcasterID,
     BroadcasterRegistration,
     LogEventRegistration,
     TransactionRegistration,
 )
-from ..routers.register import register_log_event, register_transaction_event
-from ..routers.unregister import unregister_log_event, unregister_transaction_event
+from ..settings import settings
 from ..sql import crud
 from ..utils import get_db
+from .id import unregister_id
+from .log_event import register_log_event, unregister_log_event
+from .transaction import register_transaction_event, unregister_transaction_event
 
 router = APIRouter()
+
+
+@router.post("/broadcaster/register", tags=["broadcaster"])
+async def register_broadcaster(
+    registration: BroadcasterRegistration,
+    db: Session = Depends(get_db),
+):
+    if registration.broadcaster_id:
+        raise HTTPException(
+            400, "Incorrect endpoint for modification. Try '/modify/broadcaster/'"
+        )
+
+    if not registration.connection_type:
+        raise HTTPException(400, "You must specify a connection type.")
+
+    if (
+        not registration.event_ids
+        and not registration.transaction_events
+        and not registration.log_events
+    ):
+        raise HTTPException(
+            400,
+            "You must specify one or more of 'event_ids', 'transaction_events', or 'log_events'.",
+        )
+
+    events = []
+
+    if registration.event_ids:
+        for event in registration.event_ids:
+            events.append(event)
+
+    # if new events, register them using the appropriate endpoints
+
+    if registration.transaction_events:
+        for event in registration.transaction_events:
+            res = await register_transaction_event(
+                TransactionRegistration(
+                    to_address=event.to_address,
+                    from_address=event.from_address,
+                    value=event.value,
+                ),
+                db,
+            )
+            events.append(res["reg_id"])
+
+    if registration.log_events:
+        for event in registration.log_events:
+            res = await register_log_event(
+                LogEventRegistration(
+                    address=event.address,
+                    keyword=event.keyword,
+                    position=event.position,
+                ),
+                db,
+            )
+            events.append(res["reg_id"])
+
+    # create new broadcaster ID
+
+    broadcaster_registration = crud.new_broadcaster(db, registration.endpoint)
+
+    # register all events
+
+    for event in events:
+        crud.new_broadcaster_event_registration(
+            db,
+            broadcaster_registration.broadcaster_id,
+            event,
+            registration.connection_type,
+        )
+
+        msg = {
+            "event_id": event,
+            "broadcaster_id": str(broadcaster_registration.broadcaster_id),
+            "active": True,
+        }
+
+        producer.produce(settings.broadcaster_events_topic, value=dumps(msg))
+
+    return {
+        "broadcaster_id": broadcaster_registration.broadcaster_id,
+        "status": "registered",
+    }
+
+
+@router.post("/broadcaster/unregister", tags=["broadcaster"])
+async def unregister_broadcaster(
+    registration: BroadcasterID, db: Session = Depends(get_db)
+):
+    rows = crud.get_broadcaster_registrations(db, registration.broadcaster_id)
+
+    if not rows:
+        raise HTTPException(
+            400, "Registration ID {} not found.".format(registration.broadcaster_id)
+        )
+
+    # Delete events and broadcaster event registrations
+
+    for reg in rows:
+        found = crud.get_event_registration_by_id(db, reg.event_id)
+        msg = {
+            "event_id": reg.event_id,
+            "broadcaster_id": registration.broadcaster_id,
+            "active": False,
+        }
+        producer.produce(settings.broadcaster_events_topic, value=dumps(msg))
+        crud.delete_broadcaster_event_registration(db, reg)
+        await unregister_id(found.reg_id, db)
+
+    # Delete broadcaster
+
+    crud.delete_broadcaster(db, registration.broadcaster_id)
+
+    return {"reg_id": registration.broadcaster_id, "status": "unregistered"}
 
 
 @router.post("/modify/broadcaster", tags=["modify"])
