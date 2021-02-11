@@ -60,6 +60,3 @@ def downgrade():
     op.drop_table("broadcaster_registrations")
     op.drop_table("event_registrations")
     op.drop_table("broadcasters")
-
-
-d
