@@ -13,13 +13,13 @@ from .settings import settings
 
 producer = Producer(
     {
-        "bootstrap.servers": settings.kafka_server,
-        "compression.codec": settings.kafka_compression,
+        "bootstrap.servers": settings.KAFKA_SERVER,
+        "compression.codec": settings.KAFKA_COMPRESSION,
     }
 )
 
 message_schema = {
-    "title": settings.registrations_topic + "-value",
+    "title": settings.REGISTRATIONS_TOPIC + "-value",
     "type": "object",
     "properties": {
         "type": {"type": ["string", "null"]},
@@ -31,7 +31,7 @@ message_schema = {
     },
 }
 
-schema_client = SchemaRegistryClient({"url": settings.schema_server})
+schema_client = SchemaRegistryClient({"url": settings.SCHEMA_SERVER})
 
 json_serializer = JSONSerializer(
     dumps(message_schema), schema_client, conf={"auto.register.schemas": False}
@@ -39,6 +39,6 @@ json_serializer = JSONSerializer(
 
 string_serializer = StringSerializer()
 
-key_context = SerializationContext(settings.registrations_topic, MessageField.KEY)
+key_context = SerializationContext(settings.REGISTRATIONS_TOPIC, MessageField.KEY)
 
-value_context = SerializationContext(settings.registrations_topic, MessageField.VALUE)
+value_context = SerializationContext(settings.REGISTRATIONS_TOPIC, MessageField.VALUE)
