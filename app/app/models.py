@@ -74,7 +74,7 @@ class RegistrationMessage(BaseModel):
         ) -> None:
             for prop in schema.get("properties", {}).values():
                 prop.pop("title", None)
-            schema["title"] = settings.registrations_topic + "-value"
+            schema["title"] = settings.REGISTRATIONS_TOPIC + "-value"
 
 
 class TransactionRegistrationMessage(RegistrationMessage):

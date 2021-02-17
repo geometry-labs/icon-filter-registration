@@ -95,7 +95,7 @@ async def register_broadcaster(
             "active": True,
         }
 
-        producer.produce(settings.broadcaster_events_topic, value=dumps(msg))
+        producer.produce(settings.BROADCASTER_EVENTS_TOPIC, value=dumps(msg))
 
     return {
         "broadcaster_id": broadcaster_registration.broadcaster_id,
@@ -123,7 +123,7 @@ async def unregister_broadcaster(
             "broadcaster_id": registration.broadcaster_id,
             "active": False,
         }
-        producer.produce(settings.broadcaster_events_topic, value=dumps(msg))
+        producer.produce(settings.BROADCASTER_EVENTS_TOPIC, value=dumps(msg))
         crud.delete_broadcaster_event_registration(db, reg)
         await unregister_id(found.reg_id, db)
 

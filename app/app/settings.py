@@ -1,21 +1,21 @@
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    kafka_server: str = Field(..., env="registration_kafka_server")
-    schema_server: str = Field(..., env="registration_schema_server")
-    kafka_compression: str = Field("gzip", env="registration_kafka_compression")
-    registrations_topic: str = Field(
-        "event_registrations", env="registration_registrations_topic"
-    )
-    broadcaster_events_topic: str = Field(
-        "broadcaster_events", env="registration_broadcaster_events_topic"
-    )
-    db_server: str = Field(..., env="registration_db_server")
-    db_port: int = Field(5432, env="registration_db_port")
-    db_user: str = Field(..., env="registration_db_user")
-    db_password: str = Field(..., env="registration_db_password")
-    db_database: str = Field("postgres", env="registration_db_database")
+    KAFKA_SERVER: str
+    SCHEMA_SERVER: str
+    KAFKA_COMPRESSION: str = "gzip"
+    REGISTRATIONS_TOPIC: str = "event_registrations"
+    BROADCASTER_EVENTS_TOPIC: str = "broadcaster_events"
+    POSTGRES_SERVER: str
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DATABASE: str = "postgres"
+
+    class Config:
+        env_prefix = "ICON_REGISTRATION_"
+        case_sensitive = True
 
 
 settings = Settings()

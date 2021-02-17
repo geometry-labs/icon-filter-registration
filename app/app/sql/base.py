@@ -5,11 +5,11 @@ from sqlalchemy.orm import sessionmaker
 from ..settings import settings
 
 SQLALCHEMY_DATABASE_URL = "postgresql://{user}:{password}@{server}:{port}/{db}".format(
-    user=settings.db_user,
-    password=settings.db_password,
-    server=settings.db_server,
-    port=settings.db_port,
-    db=settings.db_database,
+    user=settings.POSTGRES_USER,
+    password=settings.POSTGRES_PASSWORD,
+    server=settings.POSTGRES_SERVER,
+    port=settings.POSTGRES_PORT,
+    db=settings.POSTGRES_DATABASE,
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
