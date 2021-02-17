@@ -2,6 +2,9 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
+    API_ENDPOINT_PREFIX: str = "/api/v1"
+    DOCS_ENDPOINT_PREFIX: str = "/api/v1/docs"
+
     KAFKA_SERVER: str
     SCHEMA_SERVER: str
     KAFKA_COMPRESSION: str = "gzip"
