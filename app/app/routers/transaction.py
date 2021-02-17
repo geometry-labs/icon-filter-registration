@@ -36,7 +36,7 @@ async def register_transaction_event(
 
     # Produce message for registration topic
     producer.produce(
-        topic=settings.registrations_topic,
+        topic=settings.REGISTRATIONS_TOPIC,
         key=string_serializer(reg_id, key_context),
         value=json_serializer(msg.dict(), value_context),
         callback=acked,
@@ -72,7 +72,7 @@ async def unregister_transaction_event(
     # Produce message for registration topic
     # NOTE: This is a tombstone record, so the VALUE is NULL
     producer.produce(
-        topic=settings.registrations_topic,
+        topic=settings.REGISTRATIONS_TOPIC,
         key=string_serializer(registration.reg_id, key_context),
         value=json_serializer(None, value_context),
         callback=acked,
