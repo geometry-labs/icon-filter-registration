@@ -20,7 +20,7 @@ jobs:
 
       - name: Run test suite
         run: |
-          sudo apt install python3-setuptools librdkafka-dev
+          sudo apt install python3-dev python3-setuptools librdkafka-dev
           pip3 install -r requirements_dev.txt
           pip3 install -r requirements.txt
           python3 -m pytest app/test
