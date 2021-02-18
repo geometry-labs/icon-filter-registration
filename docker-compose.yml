@@ -11,7 +11,7 @@ services:
     ports:
       - "6100:6100"
     env_file:
-      - tests/.env.test
+      - app/tests/.env.test
 
   postgres:
     image: postgres:latest
@@ -20,4 +20,56 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data/
     env_file:
-      - tests/.env.local
+      - app/tests/.env.test
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    env_file:
+      - app/tests/.env.test
+
+  kafka:
+    image: confluentinc/cp-enterprise-kafka:latest
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    env_file:
+      - app/tests/.env.test
+
+  schemaregistry:
+    image: confluentinc/cp-schema-registry:latest
+    hostname: schemaregistry
+    container_name: schemaregistry
+    depends_on:
+      - zookeeper
+      - kafka
+    ports:
+      - "8081:8081"
+    env_file:
+      - app/tests/.env.test
+
+  connect:
+    image: confluentinc/cp-kafka-connect:5.5.3
+    hostname: connect
+    container_name: connect
+    depends_on:
+      - zookeeper
+      - kafka
+      - schemaregistry
+    ports:
+      - "8083:8083"
+    env_file:
+      - app/tests/.env.test
+
+  kafka-topic-init:
+    image: pranavt61/kafka-topic-init:latest
+    depends_on:
+      - kafka
+    env_file:
+      - app/tests/.env.test
+    volumes:
+      - ./app/tests/helpers/:/topics/
+    restart: on-failure
