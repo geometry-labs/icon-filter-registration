@@ -1,0 +1,16 @@
+version: "3.8"
+
+volumes:
+  postgres:
+
+services:
+  filter-registration:
+    build:
+      context: .
+      target: ${DOCKER_TARGET:-test}
+#    ports:
+#      - "6100:6100"
+    environment:
+      ENVIRONMENT: test
+    env_file:
+      - app/tests/.env.test

@@ -19,8 +19,11 @@ from app.settings import settings
 from app.sql.base import Base, engine
 
 
+# @pytest.fixture(scope="module")
+# def RequestCache():
 class RequestCache:
     broadcaster_id = None
+    # return RequestCache
 
 
 @pytest.fixture(scope="module")
@@ -66,7 +69,7 @@ def prepare_connectors():
         },
     }
 
-    url = "http://localhost:8083/connectors"
+    url = f"http://{os.environ.get('CONNECT_REST_ADVERTISED_HOST_NAME', 'localhost')}:8083/connectors"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
     data = dumps(connector_config)
 

@@ -23,7 +23,7 @@ async def test_broadcaster_register():
 
     RequestCache.broadcaster_id = response.json()["broadcaster_id"]
     assert response.status_code == 200
-    print(RequestCache.broadcaster_id)
+    # print(RequestCache.broadcaster_id)
 
 
 @pytest.mark.asyncio
