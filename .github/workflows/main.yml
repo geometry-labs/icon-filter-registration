@@ -10,6 +10,8 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_TARGET: test
     steps:
       - name: Checkout
         uses: actions/checkout@v2
