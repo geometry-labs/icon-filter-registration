@@ -24,5 +24,7 @@ jobs:
 
       - name: Run test suite
         run: |
-          docker-compose exec -T filter-registration ping connect -c 5
+          sleep 60
           docker-compose exec -T filter-registration pytest
+          docker-compose exec -T filter-registration curl http://connect:8083/connectors
+          docker-compose exec -T filter-registration curl http://connect:8083/connectors/EventRegistrationsSink
