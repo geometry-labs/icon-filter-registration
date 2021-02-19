@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_TARGET: test
+      COMPOSE_INTERACTIVE_NO_CLI: true
     steps:
       - name: Checkout
         uses: actions/checkout@v2
