@@ -26,5 +26,8 @@ jobs:
         run: |
           sleep 60
           docker-compose exec -T filter-registration pytest
+
+      - name: Some debug steps that need to happen
+        run: |
           docker-compose exec -T filter-registration curl http://connect:8083/connectors
           docker-compose exec -T filter-registration curl http://connect:8083/connectors/EventRegistrationsSink
