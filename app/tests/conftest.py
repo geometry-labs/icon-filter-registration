@@ -19,11 +19,8 @@ from app.settings import settings
 from app.sql.base import Base, engine
 
 
-# @pytest.fixture(scope="module")
-# def RequestCache():
 class RequestCache:
     broadcaster_id = None
-    # return RequestCache
 
 
 @pytest.fixture(scope="module")
