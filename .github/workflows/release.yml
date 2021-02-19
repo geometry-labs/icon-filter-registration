@@ -49,4 +49,6 @@ jobs:
           file: ./Dockerfile
           target: prod
           push: true
-          tags: geometrylabs/icon-filter-registration:${{ steps.source.outputs.TAG }}
+          tags: |
+            geometrylabs/icon-filter-registration:latest
+            geometrylabs/icon-filter-registration:${{ steps.source.outputs.TAG }}
