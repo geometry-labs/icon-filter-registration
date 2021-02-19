@@ -33,3 +33,14 @@ jobs:
         run: |
           docker-compose exec -T filter-registration curl http://connect:8083/connectors
           docker-compose exec -T filter-registration curl http://connect:8083/connectors/EventRegistrationsSink
+
+      - name: kafka logs
+        continue-on-error: true
+        run: docker-compose logs kafka
+
+      - name: connect logs
+        continue-on-error: true
+        run: docker-compose logs connect
+
+      - name: postgres logs
+        run: docker-compose logs postgres
