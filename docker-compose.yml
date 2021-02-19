@@ -35,7 +35,6 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
       - "29092:29092"
     env_file:
       - app/tests/.env.test

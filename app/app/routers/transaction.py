@@ -104,16 +104,27 @@ async def unregister_transaction_event(
         callback=acked,
     )
 
-    # Brief sleep to allow Kafka Connect to insert message
-    # NOTE: this will probably need to be tuned to ensure race conditions aren't a problem
-    sleep(1)
+    retry_count = 0
 
-    # Query the DB to check if insert was done correctly
-    rows = crud.get_event_registration_by_id_no_404(db, registration.reg_id)
+    while True:
+        if retry_count >= settings.MAX_CONFIRM_WAIT:
+            raise HTTPException(
+                500, "Unregistration not confirmed. Try again. (NOTOMB)"
+            )
 
-    # Ensure no rows were returned
-    if rows:
-        raise HTTPException(500, "Unregistration not confirmed. Try again. (NOTOMB)")
+        try:
+            # Query the DB to check if insert was done correctly
+            rows = crud.get_event_registration_by_id_no_404(db, registration.reg_id)
+
+            if not rows:
+                break
+
+            else:
+                retry_count += 1
+                sleep(1)
+        except:
+            retry_count += 1
+            sleep(1)
 
     return {"reg_id": registration.reg_id, "status": "unregistered"}
 

@@ -27,23 +27,3 @@ jobs:
         run: |
           sleep 120
           docker-compose exec -T filter-registration pytest
-
-      - name: Some debug steps that need to happen
-        continue-on-error: true
-        run: |
-          docker-compose exec -T filter-registration curl http://connect:8083/connectors
-          docker-compose exec -T filter-registration curl http://connect:8083/connectors/EventRegistrationsSink
-
-      - name: kafka logs
-        continue-on-error: true
-        run: docker-compose logs kafka
-
-      - name: connect logs
-        continue-on-error: true
-        run: docker-compose logs connect
-
-      - name: postgres logs
-        run: docker-compose logs postgres
-
-      - name: Check running containers
-        run: docker-compose -f docker-compose.yml ps
