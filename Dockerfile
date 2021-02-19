@@ -1,4 +1,4 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7 as base
 
 WORKDIR /app/
 
@@ -11,6 +11,5 @@ FROM base as prod
 
 FROM base as test
 COPY ./requirements_dev.txt /requirements_dev.txt
-COPY ./tests /tests
+COPY ./app/tests /tests
 RUN pip install -r /requirements_dev.txt
-RUN python -m pytest ../tests
