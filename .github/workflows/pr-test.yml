@@ -44,3 +44,6 @@ jobs:
 
       - name: postgres logs
         run: docker-compose logs postgres
+
+      - name: Check running containers
+        run: docker-compose -f docker-compose.yml ps
