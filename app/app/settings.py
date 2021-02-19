@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import os
+
 from pydantic import BaseSettings
 
 
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DATABASE: str = "postgres"
+    MAX_CONFIRM_WAIT: int = 10
 
     class Config:
         env_prefix = "ICON_REGISTRATION_"

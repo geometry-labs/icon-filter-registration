@@ -56,16 +56,29 @@ async def register_transaction_event(
         callback=acked,
     )
 
-    # Brief sleep to allow Kafka Connect to insert message
-    # NOTE: this will probably need to be tuned to ensure race conditions aren't a problem
-    sleep(1)
+    retry_count = 0
 
-    # Query the DB to check if insert was done correctly
-    rows = crud.get_event_registration_by_id_no_404(db, reg_id)
+    while True:
+        if retry_count >= settings.MAX_CONFIRM_WAIT:
+            raise HTTPException(
+                500, "Registration not confirmed. Try again. (NOINSERT)"
+            )
 
-    # Check if query returned a result (i.e. if the transaction was inserted)
-    if not rows:
-        raise HTTPException(500, "Registration not confirmed. Try again. (NOINSERT)")
+        try:
+            # Query the DB to check if insert was done correctly
+            rows = crud.get_event_registration_by_id_no_404(db, reg_id)
+
+            # Check if query returned a result (i.e. if the transaction was inserted)
+            if rows:
+                break
+
+            else:
+                retry_count += 1
+                sleep(1)
+
+        except:
+            retry_count += 1
+            sleep(1)
 
     # Check if query returned correct result
     if (
@@ -82,7 +95,6 @@ async def register_transaction_event(
 async def unregister_transaction_event(
     registration: TransactionRegistration, db: Session = Depends(get_db)
 ):
-
     # Produce message for registration topic
     # NOTE: This is a tombstone record, so the VALUE is NULL
     producer.produce(
