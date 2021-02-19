@@ -23,7 +23,6 @@ jobs:
         run: docker-compose -f docker-compose.yml ps
 
       - name: Run test suite
-        continue-on-error: true
         run: |
           sleep 120
           docker-compose exec -T filter-registration pytest
