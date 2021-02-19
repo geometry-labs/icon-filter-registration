@@ -24,5 +24,5 @@ jobs:
 
       - name: Run test suite
         run: |
-          sleep 300
+          sleep 120
           docker-compose exec -T filter-registration pytest
