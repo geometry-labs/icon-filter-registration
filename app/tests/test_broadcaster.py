@@ -13,6 +13,15 @@ registration_object = {
     ],
 }
 
+import os
+
+
+def debug_stuff():
+    print(os.environ.get("CONNECT_REST_ADVERTISED_HOST_NAME"))
+    print(
+        f"http://{os.environ.get('CONNECT_REST_ADVERTISED_HOST_NAME', 'localhost')}:8083/connectors"
+    )
+
 
 @pytest.mark.asyncio
 async def test_broadcaster_register():
