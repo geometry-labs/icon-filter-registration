@@ -25,7 +25,7 @@ jobs:
       - name: Run test suite
         continue-on-error: true
         run: |
-          sleep 60
+          sleep 120
           docker-compose exec -T filter-registration pytest
 
       - name: Some debug steps that need to happen
