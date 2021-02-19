@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import os
+
 from pydantic import BaseSettings
 
 
@@ -26,10 +28,14 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DATABASE: str = "postgres"
+    MAX_CONFIRM_WAIT: int = 10
 
     class Config:
         env_prefix = "ICON_REGISTRATION_"
         case_sensitive = True
 
 
-settings = Settings()
+if os.environ.get("ENV_FILE", False):
+    settings = Settings(_env_file=os.environ.get("ENV_FILE"))
+else:
+    settings = Settings()

@@ -4,15 +4,6 @@ volumes:
   postgres:
 
 services:
-  filter-registration:
-    build:
-      context: .
-      target: ${DOCKER_TARGET:-prod}
-    ports:
-      - "6100:6100"
-    env_file:
-      - app/tests/.env.test
-
   postgres:
     image: postgres:latest
     ports:
@@ -20,14 +11,14 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data/
     env_file:
-      - app/tests/.env.test
+      - app/tests/.env.local
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     ports:
       - "2181:2181"
     env_file:
-      - app/tests/.env.test
+      - app/tests/.env.local
 
   kafka:
     image: confluentinc/cp-enterprise-kafka:latest
@@ -37,7 +28,7 @@ services:
     ports:
       - "29092:29092"
     env_file:
-      - app/tests/.env.test
+      - app/tests/.env.local
 
   schemaregistry:
     image: confluentinc/cp-schema-registry:latest
@@ -49,7 +40,7 @@ services:
     ports:
       - "8081:8081"
     env_file:
-      - app/tests/.env.test
+      - app/tests/.env.local
 
   connect:
     image: confluentinc/cp-kafka-connect:5.5.3
@@ -62,14 +53,14 @@ services:
     ports:
       - "8083:8083"
     env_file:
-      - app/tests/.env.test
+      - app/tests/.env.local
 
   kafka-topic-init:
     image: pranavt61/kafka-topic-init:latest
     depends_on:
       - kafka
     env_file:
-      - app/tests/.env.test
+      - app/tests/.env.local
     volumes:
       - ./app/tests/helpers/:/topics/
     restart: on-failure
