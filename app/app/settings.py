@@ -18,8 +18,8 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    API_ENDPOINT_PREFIX: str = "/api/v1"
-    DOCS_ENDPOINT_PREFIX: str = "/api/v1/docs"
+    API_ENDPOINT_PREFIX: str = "/api/v1/admin"
+    DOCS_ENDPOINT_PREFIX: str = "/api/v1/admin/docs"
 
     KAFKA_SERVER: str
     SCHEMA_SERVER: str
