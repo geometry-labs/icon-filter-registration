@@ -148,14 +148,14 @@ async def unregister_broadcaster(
     return {"reg_id": registration.broadcaster_id, "status": "unregistered"}
 
 
-@router.post("/modify/broadcaster", tags=["modify"])
+@router.post("/broadcaster/modify", tags=["modify"])
 async def modify_broadcaster_registration(
     registration: BroadcasterRegistration,
     db: Session = Depends(get_db),
 ):
     if not registration.broadcaster_id:
         raise HTTPException(
-            400, "Incorrect endpoint for registration. Try '/register/broadcaster/'"
+            400, "Incorrect endpoint for registration. Try '/broadcaster/register'"
         )
 
     # Collect current broadcaster x event registrations
