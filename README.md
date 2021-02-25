@@ -67,6 +67,87 @@ Just be sure to set the corresponding environment variables to suit your configu
 | POSTGRES_DATABASE        | postgres            | Postgres database name                          |
 | MAX_CONFIRM_WAIT         | 10                  | Number of retries for registration confirmation |
 
+### Registration
+#### Broadcaster
+POST: _/broadcaster/register_
+
+```json
+{
+    "connection_type": "ws",
+    "endpoint": "wss://test",
+    "event_ids": [
+      "1234-1234-1234"
+    ],
+    "transaction_events": [
+        {
+            "to_address": "cx0000000000000000000000000000000000000000",
+            "from_address": "cx0000000000000000000000000000000000000001"
+        }
+    ],
+    "log_events": [
+        {
+            "address": "cx0000000000000000000000000000000000000001",
+            "keyword": "LogKeyword",
+            "position": 1
+        }
+    ]
+}
+```
+
+#### Log Event
+POST: _/logevent/register_
+
+```json
+{
+    "address": "cx0000000000000000000000000000000000000001",
+    "keyword": "LogKeyword",
+    "position": 1
+}
+```
+
+#### Transaction
+POST: _/transaction/register_
+
+```json
+{
+    "to_address": "cx0000000000000000000000000000000000000000",
+    "from_address": "cx0000000000000000000000000000000000000001"
+}
+```
+
+### Unregister
+#### Broadcaster
+POST: _/broadcaster/unregister_
+
+```json
+{
+    "broadcaster_id": "1234-1234-1234"
+}
+```
+
+#### Log Event
+POST: _/logevent/unregister_
+
+```json
+{
+    "reg_id": "1234-1234-1234",
+    "address": "cx0000000000000000000000000000000000000001",
+    "keyword": "LogKeyword",
+    "position": 1
+}
+```
+
+#### Transaction
+POST: _/transaction/unregister_
+
+```json
+{
+    "reg_id": "1234-1234-1234",
+    "to_address": "cx0000000000000000000000000000000000000000",
+    "from_address": "cx0000000000000000000000000000000000000001"
+}
+```
+
 ## License
 
 Distributed under the Apache 2.0 License. See `LICENSE` for more information.
