@@ -150,9 +150,9 @@ async def get_log_event_registrations(db: Session = Depends(get_db)):
     for row in rows:
         registrations.append(
             LogEventRegistration(
-                address=row[1],
-                keyword=row[2],
-                position=row[3],
+                address=row.to_address,
+                keyword=row.keyword,
+                position=row.position,
             )
         )
 

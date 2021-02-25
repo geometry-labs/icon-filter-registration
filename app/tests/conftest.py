@@ -21,6 +21,8 @@ from app.sql.base import Base, engine
 
 class RequestCache:
     broadcaster_id = None
+    event_id = None
+    tx_id = None
 
 
 @pytest.fixture(scope="module")
