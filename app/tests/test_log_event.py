@@ -1,5 +1,3 @@
-from json import dumps
-
 import pytest
 from app.main import app
 from app.models import LogEventRegistration
@@ -22,7 +20,6 @@ async def test_logevent_register():
             data=registration.json(),
         )
 
-    print(response.json())
     RequestCache.event_id = response.json()["reg_id"]
     assert response.status_code == 200
 
