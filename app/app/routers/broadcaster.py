@@ -22,6 +22,7 @@ from ..models import (
     BroadcasterID,
     BroadcasterRegistration,
     LogEventRegistration,
+    RegistrationID,
     TransactionRegistration,
 )
 from ..settings import settings
@@ -139,7 +140,7 @@ async def unregister_broadcaster(
         }
         producer.produce(settings.BROADCASTER_EVENTS_TOPIC, value=dumps(msg))
         crud.delete_broadcaster_event_registration(db, reg)
-        await unregister_id(found.reg_id, db)
+        await unregister_id(RegistrationID(reg_id=found.reg_id), db)
 
     # Delete broadcaster
 
