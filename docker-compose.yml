@@ -65,7 +65,7 @@ services:
       - app/tests/.env.test
 
   kafka-topic-init:
-    image: pranavt61/kafka-topic-init:latest
+    image: geometrylabs/kafka-topics-init:latest
     depends_on:
       - kafka
     env_file:
