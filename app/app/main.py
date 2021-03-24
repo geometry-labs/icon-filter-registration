@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 from fastapi import FastAPI
+from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 from .routers import broadcaster, id, log_event, transaction
 from .settings import settings
@@ -48,3 +49,7 @@ app.include_router(log_event.router, prefix=settings.API_ENDPOINT_PREFIX)
 app.include_router(transaction.router, prefix=settings.API_ENDPOINT_PREFIX)
 app.include_router(broadcaster.router, prefix=settings.API_ENDPOINT_PREFIX)
 app.include_router(id.router, prefix=settings.API_ENDPOINT_PREFIX)
+app.add_middleware(
+    PrometheusMiddleware, prefix="icon_reg", app_name="icon_reg", group_paths=True
+)
+app.add_route("/metrics", handle_metrics)
